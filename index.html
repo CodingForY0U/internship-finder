@@ -733,9 +733,9 @@ body[data-accent="terra"] { --accent: oklch(58% 0.1 45);  --accent-soft: oklch(9
   <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
 
-  <!-- Mock data -->
+  <!-- Mock data (fallback) -->
   <script>
-window.JOBS = [
+window.MOCK_JOBS = [
   {
     id: "j01",
     title: "Sustainability Strategy Intern",
@@ -1117,6 +1117,117 @@ window.JOBS = [
 ];
   </script>
 
+  <!-- Live API integration -->
+  <script>
+// ── MyCareersFuture API ──────────────────────────────────────────────────────
+
+function stripHtml(html) {
+  return (html || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function getSector(job) {
+  const t = (job.title || "").toLowerCase();
+  const d = (job.description || "").toLowerCase();
+  const cat = job.categories?.[0]?.category || "";
+  const isSustain =
+    t.includes("sustainab") || t.includes("environ") || t.includes("green") ||
+    t.includes("carbon") || t.includes("climate") || t.includes("esg") ||
+    t.includes("renewab") || t.includes("circular") || t.includes("nature") ||
+    t.includes("conservation") || t.includes("ecology") || t.includes("saf") ||
+    d.includes("sustainability") || d.includes("net zero") || d.includes("decarboni") ||
+    cat === "Environmental Services" || cat === "Energy and Chemicals";
+  if (isSustain) return "Environmental Sustainability";
+  const map = {
+    "Banking and Finance": "Finance", "Financial Services": "Finance",
+    "Information and Communications": "Tech", "Technology": "Tech",
+    "Logistics and Supply Chain": "Logistics", "Media": "Media",
+    "E-Commerce": "E-commerce", "Retail": "E-commerce",
+  };
+  return map[cat] || cat || "Other";
+}
+
+function mapMCFJob(job) {
+  const company = job.postedCompany?.name || "Unknown";
+  const words = company.replace(/\(.*?\)/g, "").trim().split(/\s+/);
+  const companyShort = words.length <= 2 ? words.join(" ") : words.map(w => w[0]).join("").toUpperCase();
+
+  const sector = getSector(job);
+  const skills = (job.skills || []).map(s => s.skill).filter(Boolean);
+  const subAreas = skills.length ? skills.slice(0, 4) : [job.categories?.[0]?.category || "General"];
+
+  const desc = (job.description || "").toLowerCase();
+  let workMode = "On-site";
+  if (desc.includes("fully remote") || desc.includes("work from home")) workMode = "Remote";
+  else if (desc.includes("hybrid")) workMode = "Hybrid";
+
+  let durationMonths = 6;
+  const durMatch = desc.match(/(\d+)[- ]*(month|months)/i);
+  if (durMatch) durationMonths = Math.min(parseInt(durMatch[1]), 12);
+
+  const empCount = job.postedCompany?.employeeCount;
+  let companySize = "Mid (200-1000)";
+  if (empCount != null) {
+    if (empCount < 50)   companySize = "Small (<50)";
+    else if (empCount < 200)  companySize = "Startup (50-200)";
+    else if (empCount < 1000) companySize = "Mid (200-1000)";
+    else companySize = "Large (1000+)";
+  }
+
+  const min = job.salary?.minimum, max = job.salary?.maximum;
+  const isHidden = job.metadata?.isHideSalary;
+  let stipend = "Undisclosed";
+  if (!isHidden && min && max) stipend = `S$${min.toLocaleString()} – ${max.toLocaleString()} / month`;
+  else if (!isHidden && min)   stipend = `S$${min.toLocaleString()} / month`;
+  else if (!isHidden && max)   stipend = `Up to S$${max.toLocaleString()} / month`;
+
+  const posted = job.metadata?.newPostingDate || new Date().toISOString().slice(0, 10);
+  const daysAgo = Math.floor((Date.now() - new Date(posted).getTime()) / 86400000);
+  const postedLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "1 day ago" : `${daysAgo} days ago`;
+
+  const scope = stripHtml(job.description).slice(0, 400);
+  const requirements = skills.slice(0, 6).map(s => s.charAt(0).toUpperCase() + s.slice(1));
+
+  return {
+    id: job.uuid,
+    title: job.title,
+    company,
+    companyShort,
+    sector,
+    subAreas,
+    location: job.address?.isOverseas ? "Overseas" : "Singapore",
+    workMode,
+    companySize,
+    durationMonths,
+    startMonth: "Sep 2026",
+    deadline: job.metadata?.expiryDate || new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+    mentorship: false,
+    mentorTitle: null,
+    sources: ["MyCareersFuture"],
+    stipend,
+    posted: postedLabel,
+    scope: scope || "See full listing on MyCareersFuture.",
+    requirements: requirements.length ? requirements : ["See full listing"],
+    mcfUrl: job.metadata?.jobDetailsUrl,
+  };
+}
+
+async function fetchLiveJobs() {
+  const BASE = "https://api.mycareersfuture.gov.sg/v2/jobs";
+  const searches = ["sustainability", "environmental", "ESG", "carbon climate", "renewable energy", "circular economy"];
+  const seen = new Set();
+  const jobs = [];
+  await Promise.allSettled(searches.map(async (q) => {
+    const res = await fetch(`${BASE}?search=${encodeURIComponent(q)}&limit=30&sortBy=new_posting_date`);
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    for (const j of (data.results || [])) {
+      if (!seen.has(j.uuid)) { seen.add(j.uuid); jobs.push(mapMCFJob(j)); }
+    }
+  }));
+  return jobs;
+}
+  </script>
+
   <!-- All components + app (JSX, transpiled by Babel in-browser) -->
   <script type="text/babel">
 
@@ -1288,6 +1399,7 @@ const Icon = ({ name, size = 16 }) => {
     chevronRight: <path d="M6 3l5 5-5 5"/>,
     grid: <><rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/></>,
     calendar: <><rect x="2.5" y="3.5" width="11" height="10"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></>,
+    external: <><path d="M6 3H3v10h10V10"/><path d="M10 3h3v3M8 8l5-5"/></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none"
@@ -1628,6 +1740,12 @@ const Drawer = ({ job, saved, applied, onClose, onToggleSave, onToggleApplied })
           <button className={"btn" + (applied ? " accent" : "")} onClick={onToggleApplied}>
             <Icon name="check-circle"/>{applied ? "Marked applied" : "Mark as applied"}
           </button>
+          {job.mcfUrl && (
+            <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer"
+               className="btn ghost" style={{ flex:"none" }}>
+              <Icon name="external"/>Apply
+            </a>
+          )}
         </div>
       </aside>
     </>
@@ -1721,7 +1839,7 @@ const Calendar = ({ jobs, applied, onPick }) => {
 
 const TWEAK_DEFAULTS = { accent: "#2E9461", density: "comfy", matchVariant: "ring" };
 const ACCENT_NAME = { "#2E9461": "green", "#5A6B82": "slate", "#18181B": "ink", "#C97A3F": "terra" };
-const SECTORS = ["Environmental Sustainability","Finance","Tech","E-commerce","Logistics","Media"];
+const SECTORS = ["Environmental Sustainability","Finance","Tech","E-commerce","Logistics","Media","Other"];
 const COMPANY_SIZES = ["Startup (50-200)","Small (<50)","Mid (200-1000)","Large (1000+)"];
 
 function App() {
@@ -1730,6 +1848,19 @@ function App() {
   React.useEffect(() => {
     document.body.setAttribute("data-accent", ACCENT_NAME[t.accent] || "green");
   }, [t.accent]);
+
+  // ── Live jobs state
+  const [jobs, setJobs] = React.useState(window.MOCK_JOBS);
+  const [jobsStatus, setJobsStatus] = React.useState("loading");
+
+  React.useEffect(() => {
+    fetchLiveJobs()
+      .then(live => {
+        if (live.length > 0) { setJobs(live); setJobsStatus("live"); }
+        else { setJobsStatus("mock"); }
+      })
+      .catch(() => setJobsStatus("mock"));
+  }, []);
 
   const [q, setQ] = React.useState("");
   const [sectors, setSectors] = React.useState(["Environmental Sustainability"]);
@@ -1761,7 +1892,7 @@ function App() {
 
   const filtered = React.useMemo(() => {
     const ql = q.trim().toLowerCase();
-    return window.JOBS.filter(j => {
+    return jobs.filter(j => {
       if (ql) {
         const hay = (j.title + " " + j.company + " " + j.sector + " " + j.subAreas.join(" ") + " " + j.scope).toLowerCase();
         if (!hay.includes(ql)) return false;
@@ -1782,7 +1913,7 @@ function App() {
       if (sort === "company") return a.company.localeCompare(b.company);
       return 0;
     });
-  }, [q, sectors, locations, workModes, sizes, mentorshipOnly, sixMonthOnly, septStartOnly, minMatch, sort, showSavedOnly, saved]);
+  }, [jobs, q, sectors, locations, workModes, sizes, mentorshipOnly, sixMonthOnly, septStartOnly, minMatch, sort, showSavedOnly, saved]);
 
   const clearAll = () => {
     setQ(""); setSectors([]); setLocations([]); setWorkModes([]); setSizes([]);
@@ -1817,6 +1948,11 @@ function App() {
           <button className={view === "calendar" ? "on" : ""} onClick={() => setView("calendar")}>
             <Icon name="calendar" size={12}/> Deadlines
           </button>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:11.5, color:"var(--muted)", fontFamily:"var(--font-mono)" }}>
+          {jobsStatus === "loading" && <><span style={{ width:7, height:7, borderRadius:"50%", background:"var(--muted-2)", display:"inline-block" }}/> Loading…</>}
+          {jobsStatus === "live"    && <><span style={{ width:7, height:7, borderRadius:"50%", background:"var(--accent)", display:"inline-block" }}/> Live · MCF</>}
+          {jobsStatus === "mock"    && <><span style={{ width:7, height:7, borderRadius:"50%", background:"var(--warn)", display:"inline-block" }}/> Mock data</>}
         </div>
         <button
           className="saved-pill"
