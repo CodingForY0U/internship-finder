@@ -1,0 +1,2021 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Internship Finder</title>
+  <style>
+/* Internship Finder — clean editorial neutral */
+:root {
+  --bg: #FAFAF7;
+  --bg-elev: #FFFFFF;
+  --ink: #18181B;
+  --ink-2: #3F3F46;
+  --muted: #71717A;
+  --muted-2: #A1A1AA;
+  --line: #E7E5E0;
+  --line-2: #EFEDE8;
+  --accent: oklch(55% 0.08 150);
+  --accent-soft: oklch(96% 0.025 150);
+  --accent-ink: oklch(38% 0.07 150);
+  --warn: oklch(60% 0.12 55);
+  --warn-soft: oklch(97% 0.03 75);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 0 rgba(24,24,27,.04), 0 1px 2px rgba(24,24,27,.04);
+  --shadow-md: 0 4px 14px rgba(24,24,27,.06), 0 1px 0 rgba(24,24,27,.04);
+  --shadow-lg: 0 20px 60px rgba(24,24,27,.18);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "IBM Plex Mono", Menlo, monospace;
+  --pad: 16px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: var(--bg);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+
+/* ───── App shell ───── */
+.app {
+  display: grid;
+  grid-template-rows: 56px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-elev);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-size: 15px;
+}
+.brand-mark {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: var(--ink);
+  position: relative;
+  display: grid; place-items: center;
+}
+.brand-mark::before {
+  content: "";
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.brand small {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 12px;
+  margin-left: 6px;
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+
+.search {
+  flex: 1;
+  max-width: 480px;
+  position: relative;
+}
+.search input {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px 0 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  outline: none;
+  transition: border-color .15s, background .15s;
+}
+.search input:focus { border-color: var(--ink); background: var(--bg-elev); }
+.search-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px;
+  opacity: 0.5;
+}
+
+.view-toggle {
+  display: inline-flex;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+.view-toggle button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.view-toggle button.on {
+  background: var(--bg-elev);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.saved-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.saved-pill .num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  background: var(--ink);
+  color: white;
+  border-radius: 4px;
+  padding: 1px 5px;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* ───── Main content ───── */
+.main {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  overflow: hidden;
+}
+
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: var(--bg-elev);
+  padding: 18px 18px 24px;
+  overflow-y: auto;
+}
+.sidebar h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+.filter-group { margin-bottom: 22px; }
+.filter-group:last-of-type { margin-bottom: 0; }
+
+.chip-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.chip {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  color: var(--ink-2);
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all .12s;
+}
+.chip:hover { border-color: var(--ink-2); }
+.chip.on {
+  background: var(--ink);
+  color: white;
+  border-color: var(--ink);
+}
+.chip.on.accent {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.check {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px;
+  color: var(--ink-2);
+  padding: 4px 0;
+  cursor: pointer;
+}
+.check input { appearance: none; width: 16px; height: 16px;
+  border: 1.5px solid var(--line); border-radius: 4px;
+  display: inline-grid; place-items: center; cursor: pointer;
+  transition: all .12s; flex-shrink: 0;
+}
+.check input:checked { background: var(--accent); border-color: var(--accent); }
+.check input:checked::after {
+  content: "";
+  width: 8px; height: 4px;
+  border-left: 1.5px solid white;
+  border-bottom: 1.5px solid white;
+  transform: rotate(-45deg) translate(1px,-1px);
+}
+
+.slider-row { display: flex; align-items: center; gap: 10px; }
+.slider-row input[type=range] {
+  flex: 1; height: 4px; -webkit-appearance: none;
+  background: var(--line); border-radius: 2px; outline: none;
+}
+.slider-row input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--ink);
+  cursor: pointer;
+}
+.slider-row .val {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink);
+  min-width: 32px; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.clear-btn {
+  appearance: none; border: 0; background: transparent;
+  color: var(--muted); font-size: 12px; font-weight: 500;
+  padding: 4px 0; cursor: pointer; text-decoration: underline;
+}
+.clear-btn:hover { color: var(--ink); }
+
+/* ───── Results ───── */
+.results {
+  overflow-y: auto;
+  padding: 22px 24px 80px;
+}
+.results-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 18px;
+}
+.results-count {
+  font-size: 13px; color: var(--muted);
+}
+.results-count strong {
+  color: var(--ink); font-weight: 600;
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+}
+.sort {
+  display: flex; align-items: center; gap: 6px; font-size: 12.5px;
+  color: var(--muted);
+}
+.sort select {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  padding: 4px 22px 4px 8px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--ink);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 5l3 3 3-3' stroke='%2371717A' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 12px;
+  cursor: pointer;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+.grid.dense { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+
+/* ───── Job card ───── */
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+  position: relative;
+}
+.card:hover {
+  border-color: var(--ink-2);
+  box-shadow: var(--shadow-md);
+}
+.card.dense { padding: 13px; gap: 10px; }
+.card.applied {
+  border-color: var(--accent);
+  background: linear-gradient(0deg, var(--accent-soft) 0%, var(--bg-elev) 60%);
+}
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+.card-company {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.card-meta {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  font-size: 11.5px;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  font-weight: 500;
+  font-size: 11px;
+}
+.tag.sustain {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border-color: oklch(90% 0.04 150);
+}
+.tag.mentor {
+  background: var(--warn-soft);
+  color: oklch(42% 0.1 55);
+  border-color: oklch(90% 0.05 70);
+}
+.tag.dot::before {
+  content: "";
+  display: inline-block;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: currentColor; opacity: 0.7;
+}
+
+.card-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-2);
+  gap: 10px;
+}
+.card-sources {
+  font-size: 11px;
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+.card-actions { display: flex; gap: 4px; }
+.icon-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  color: var(--muted);
+  transition: all .12s;
+}
+.icon-btn:hover { background: var(--bg); color: var(--ink); border-color: var(--line); }
+.icon-btn.on { color: var(--ink); background: var(--accent-soft); border-color: oklch(88% 0.05 150); }
+.icon-btn svg { width: 16px; height: 16px; }
+
+/* ───── Match score visuals ───── */
+.match-ring {
+  width: 44px; height: 44px;
+  position: relative;
+  flex-shrink: 0;
+}
+.match-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.match-ring .track { fill: none; stroke: var(--line); stroke-width: 4; }
+.match-ring .fill { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
+.match-ring .num {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.match-ring.low .fill { stroke: var(--muted-2); }
+.match-ring.low .num { color: var(--muted); }
+
+.match-bar {
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 80px;
+}
+.match-bar .num {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.match-bar .num sub { font-size: 10px; color: var(--muted); font-weight: 400; vertical-align: baseline; }
+.match-bar .track {
+  margin-top: 4px;
+  height: 3px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.match-bar .fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .6s ease; }
+.match-bar.low .fill { background: var(--muted-2); }
+
+.match-num-only {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  line-height: 1;
+}
+.match-num-only sub { font-size: 11px; color: var(--muted); font-weight: 400; vertical-align: baseline; margin-left: 1px; }
+.match-num-only.low { color: var(--muted-2); }
+
+/* ───── Drawer ───── */
+.drawer-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(24,24,27,.32);
+  z-index: 100;
+  animation: fadeIn .18s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } }
+
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: min(560px, 92vw);
+  background: var(--bg-elev);
+  z-index: 101;
+  display: flex; flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  animation: slideIn .25s cubic-bezier(.2,.7,.2,1);
+}
+@keyframes slideIn { from { transform: translateX(20px); opacity: 0; } }
+
+.drawer-head {
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+}
+.drawer-head h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.drawer-head .company {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.drawer-close {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  color: var(--ink-2);
+  flex-shrink: 0;
+}
+.drawer-close:hover { background: var(--bg); }
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 24px 100px;
+}
+.drawer-body section { margin-bottom: 24px; }
+.drawer-body h4 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.score-breakdown {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  background: var(--bg);
+}
+.score-breakdown .total {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.score-breakdown .total .label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); font-weight: 600;
+}
+.score-breakdown .total .val {
+  font-family: var(--font-mono);
+  font-size: 28px; font-weight: 600; letter-spacing: -0.03em;
+}
+.score-breakdown .total .val sub { font-size: 12px; color: var(--muted); font-weight: 400; }
+.score-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+.score-row + .score-row { border-top: 1px dashed var(--line-2); }
+.score-row .label { color: var(--ink-2); display: flex; align-items: center; gap: 8px; }
+.score-row .label .dot { width: 7px; height: 7px; border-radius: 50%; }
+.score-row .label .dot.met { background: var(--accent); }
+.score-row .label .dot.miss { background: var(--muted-2); }
+.score-row .points {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--muted);
+}
+.score-row.met .points { color: var(--accent-ink); }
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--line-2);
+}
+.meta-grid > div {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 13px;
+}
+.meta-grid .k { color: var(--muted); font-size: 11.5px; margin-bottom: 2px; }
+.meta-grid .v { color: var(--ink); font-weight: 500; }
+
+.checklist { display: flex; flex-direction: column; gap: 4px; }
+.checklist .check { font-size: 13.5px; padding: 6px 0; }
+.checklist .check.done { color: var(--muted); }
+.checklist .check.done .label { text-decoration: line-through; }
+
+.cover-letter {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  background: var(--bg);
+}
+.cover-letter textarea {
+  width: 100%;
+  min-height: 160px;
+  border: 0;
+  background: transparent;
+  resize: vertical;
+  outline: none;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+.cover-letter textarea::placeholder { color: var(--muted-2); }
+.cover-letter .row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-2);
+  gap: 8px;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: white;
+  padding: 7px 14px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity .15s, transform .05s;
+}
+.btn:hover { opacity: .88; }
+.btn:active { transform: translateY(1px); }
+.btn.ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+.btn.ghost:hover { border-color: var(--ink-2); opacity: 1; }
+.btn.accent {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.btn.sm { padding: 5px 10px; font-size: 12px; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+.drawer-foot {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 14px 24px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-elev);
+  display: flex; gap: 10px;
+}
+.drawer-foot .btn { flex: 1; justify-content: center; }
+
+/* ───── Calendar ───── */
+.cal {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.cal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.cal-head .month {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.cal-nav { display: flex; gap: 4px; }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.cal-dow {
+  padding: 8px 10px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.cal-cell {
+  min-height: 92px;
+  border-right: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line-2);
+  padding: 6px 8px;
+  position: relative;
+  font-size: 12px;
+}
+.cal-cell.dim { background: var(--bg); color: var(--muted-2); }
+.cal-cell .d {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-weight: 500;
+}
+.cal-cell.today .d {
+  color: white;
+  background: var(--ink);
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: inline-grid; place-items: center;
+  margin-left: -4px;
+}
+.cal-event {
+  display: block;
+  margin-top: 4px;
+  padding: 3px 5px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border-left: 2px solid var(--accent);
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 1.3;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  font-weight: 500;
+}
+.cal-event:hover { filter: brightness(0.97); }
+.cal-event.applied { background: oklch(95% 0.02 250); color: var(--ink-2); border-left-color: var(--muted-2); }
+.cal-event-more { font-size: 10.5px; color: var(--muted); margin-top: 3px; cursor: pointer; }
+.cal-event-more:hover { color: var(--ink); }
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty h3 { color: var(--ink); font-weight: 600; margin: 0 0 6px; }
+.empty p { margin: 0; font-size: 13px; }
+
+/* Accent palette switch (via Tweaks) */
+body[data-accent="green"] { --accent: oklch(55% 0.08 150); --accent-soft: oklch(96% 0.025 150); --accent-ink: oklch(38% 0.07 150); }
+body[data-accent="slate"] { --accent: oklch(48% 0.04 250); --accent-soft: oklch(96% 0.015 250); --accent-ink: oklch(35% 0.04 250); }
+body[data-accent="ink"]   { --accent: oklch(28% 0 0);     --accent-soft: oklch(96% 0 0);     --accent-ink: oklch(22% 0 0); }
+body[data-accent="terra"] { --accent: oklch(58% 0.1 45);  --accent-soft: oklch(97% 0.03 50); --accent-ink: oklch(42% 0.09 45); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React + Babel -->
+  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+
+  <!-- Mock data -->
+  <script>
+window.JOBS = [
+  {
+    id: "j01",
+    title: "Sustainability Strategy Intern",
+    company: "City Developments Limited",
+    companyShort: "CDL",
+    sector: "Environmental Sustainability",
+    subAreas: ["ESG", "Green Buildings", "Reporting"],
+    location: "Singapore",
+    workMode: "Hybrid",
+    companySize: "Large (1000+)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-06-30",
+    mentorship: true,
+    mentorTitle: "Chief Sustainability Officer",
+    sources: ["LinkedIn", "MyCareersFuture"],
+    stipend: "S$1,200 / month",
+    posted: "2 days ago",
+    scope: "Support the Sustainability Office on TCFD-aligned climate reporting, embodied carbon studies on upcoming developments, and the FY26 integrated sustainability report.",
+    requirements: ["Final-year poly / Year 2 uni", "Excel + data analysis", "Interest in built-environment sustainability"],
+  },
+  {
+    id: "j02",
+    title: "Carbon Markets Analyst Intern",
+    company: "Climate Impact X",
+    companyShort: "CIX",
+    sector: "Environmental Sustainability",
+    subAreas: ["Carbon Markets", "Climate Finance"],
+    location: "Singapore",
+    workMode: "On-site",
+    companySize: "Startup (50-200)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-07-15",
+    mentorship: true,
+    mentorTitle: "Head of Markets",
+    sources: ["LinkedIn", "Company Site"],
+    stipend: "S$1,400 / month",
+    posted: "5 days ago",
+    scope: "Research voluntary carbon market trends, support due diligence on nature-based project listings, and help build market intelligence dashboards.",
+    requirements: ["Strong written English", "Curiosity about climate finance", "SQL or Python a plus"],
+  },
+  {
+    id: "j03",
+    title: "Decarbonisation Project Intern",
+    company: "GenZero",
+    companyShort: "GenZero",
+    sector: "Environmental Sustainability",
+    subAreas: ["Climate Tech", "Investment"],
+    location: "Singapore",
+    workMode: "Hybrid",
+    companySize: "Mid (200-1000)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-07-01",
+    mentorship: true,
+    mentorTitle: "Managing Director",
+    sources: ["LinkedIn", "MyCareersFuture", "Glints"],
+    stipend: "S$1,500 / month",
+    posted: "1 week ago",
+    scope: "Assist with deal screening for climate tech investments across SEA, build market maps for hard-to-abate sectors, and support portfolio reporting.",
+    requirements: ["Comfort with financial modelling basics", "Strong research skills", "Excel"],
+  },
+  {
+    id: "j04",
+    title: "ESG Data Intern",
+    company: "DBS Bank",
+    companyShort: "DBS",
+    sector: "Finance",
+    subAreas: ["ESG", "Sustainable Finance"],
+    location: "Singapore",
+    workMode: "Hybrid",
+    companySize: "Large (1000+)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-06-15",
+    mentorship: true,
+    mentorTitle: "Group Head of Sustainability",
+    sources: ["LinkedIn", "MyCareersFuture"],
+    stipend: "S$1,600 / month",
+    posted: "3 days ago",
+    scope: "Support the sustainable finance team with ESG data quality checks, sector pathway research, and green/transition loan tracking.",
+    requirements: ["Detail-oriented", "Excel + Power BI", "Banking / finance interest"],
+  },
+  {
+    id: "j05",
+    title: "Renewable Energy Operations Intern",
+    company: "Sembcorp Industries",
+    companyShort: "Sembcorp",
+    sector: "Environmental Sustainability",
+    subAreas: ["Renewables", "Solar"],
+    location: "Singapore",
+    workMode: "On-site",
+    companySize: "Large (1000+)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-07-10",
+    mentorship: true,
+    mentorTitle: "Head of Renewables APAC",
+    sources: ["LinkedIn", "MyCareersFuture"],
+    stipend: "S$1,300 / month",
+    posted: "1 week ago",
+    scope: "Work alongside the renewables ops team on solar asset performance analysis, O&M reporting, and integration of new utility-scale projects.",
+    requirements: ["Engineering / Env Science background", "Comfortable with field visits", "Data viz tools"],
+  },
+  {
+    id: "j06",
+    title: "Sustainability Communications Intern",
+    company: "Eco-Business",
+    companyShort: "Eco-Business",
+    sector: "Media",
+    subAreas: ["Climate Journalism", "Comms"],
+    location: "Singapore",
+    workMode: "Hybrid",
+    companySize: "Small (<50)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-06-20",
+    mentorship: true,
+    mentorTitle: "Founder & CEO",
+    sources: ["LinkedIn", "Company Site"],
+    stipend: "S$900 / month",
+    posted: "4 days ago",
+    scope: "Research and draft articles on Asia-Pacific climate policy, support events programming for the Unlocking Capital for Sustainability series.",
+    requirements: ["Strong writing portfolio", "News sense", "Comfortable with interviews"],
+  },
+  {
+    id: "j07",
+    title: "Green Infrastructure Intern",
+    company: "Keppel Infrastructure",
+    companyShort: "Keppel",
+    sector: "Environmental Sustainability",
+    subAreas: ["Water", "Waste-to-Energy"],
+    location: "Singapore",
+    workMode: "Hybrid",
+    companySize: "Large (1000+)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-07-05",
+    mentorship: true,
+    mentorTitle: "CEO, Keppel Infrastructure",
+    sources: ["LinkedIn", "MyCareersFuture"],
+    stipend: "S$1,250 / month",
+    posted: "6 days ago",
+    scope: "Support feasibility studies on new district cooling and waste-to-energy projects across Singapore and Vietnam.",
+    requirements: ["Engineering background helpful", "Excel modelling", "Site-visit comfortable"],
+  },
+  {
+    id: "j08",
+    title: "Conservation Programme Intern",
+    company: "WWF Singapore",
+    companyShort: "WWF",
+    sector: "Environmental Sustainability",
+    subAreas: ["Conservation", "Sustainable Supply Chains"],
+    location: "Singapore",
+    workMode: "Hybrid",
+    companySize: "Small (<50)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-06-25",
+    mentorship: false,
+    mentorTitle: null,
+    sources: ["LinkedIn", "Company Site"],
+    stipend: "S$800 / month",
+    posted: "1 week ago",
+    scope: "Support the sustainable palm oil and seafood programmes, including stakeholder engagement and member company reporting.",
+    requirements: ["Passion for conservation", "Stakeholder comms", "Research"],
+  },
+  {
+    id: "j09",
+    title: "Climate Risk Intern",
+    company: "South Pole",
+    companyShort: "South Pole",
+    sector: "Environmental Sustainability",
+    subAreas: ["Climate Risk", "Net Zero"],
+    location: "Remote",
+    workMode: "Remote",
+    companySize: "Mid (200-1000)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-07-20",
+    mentorship: true,
+    mentorTitle: "Regional Director, APAC",
+    sources: ["LinkedIn"],
+    stipend: "S$1,100 / month",
+    posted: "2 weeks ago",
+    scope: "Support client engagements on TCFD/IFRS S2 climate risk assessments and net-zero pathway development.",
+    requirements: ["Quant comfort", "Excel", "Self-managed"],
+  },
+  {
+    id: "j10",
+    title: "Marketing Intern",
+    company: "Shopee",
+    companyShort: "Shopee",
+    sector: "E-commerce",
+    subAreas: ["Marketing", "Growth"],
+    location: "Singapore",
+    workMode: "On-site",
+    companySize: "Large (1000+)",
+    durationMonths: 3,
+    startMonth: "Sep 2026",
+    deadline: "2026-06-30",
+    mentorship: false,
+    mentorTitle: null,
+    sources: ["LinkedIn", "JobStreet", "MyCareersFuture"],
+    stipend: "S$1,000 / month",
+    posted: "1 day ago",
+    scope: "Support campaign execution across SEA markets — creative briefs, performance reporting, and influencer coordination.",
+    requirements: ["Marketing student", "Creative", "Excel"],
+  },
+  {
+    id: "j11",
+    title: "Water Sustainability Intern",
+    company: "PUB Singapore",
+    companyShort: "PUB",
+    sector: "Environmental Sustainability",
+    subAreas: ["Water", "Public Sector"],
+    location: "Singapore",
+    workMode: "On-site",
+    companySize: "Large (1000+)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-07-12",
+    mentorship: true,
+    mentorTitle: "Director, Water Supply",
+    sources: ["MyCareersFuture", "Company Site"],
+    stipend: "S$1,150 / month",
+    posted: "5 days ago",
+    scope: "Support water demand modelling, NEWater plant performance reporting, and education programmes for the public.",
+    requirements: ["Env Science / Engineering", "Data tools", "Communication"],
+  },
+  {
+    id: "j12",
+    title: "Software Engineering Intern",
+    company: "Grab",
+    companyShort: "Grab",
+    sector: "Tech",
+    subAreas: ["Backend", "Mobility"],
+    location: "Singapore",
+    workMode: "Hybrid",
+    companySize: "Large (1000+)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-06-30",
+    mentorship: false,
+    mentorTitle: null,
+    sources: ["LinkedIn", "JobStreet"],
+    stipend: "S$2,000 / month",
+    posted: "3 days ago",
+    scope: "Build features on the consumer mobile platform alongside a senior engineering pod.",
+    requirements: ["Go / Java", "DSA", "Git"],
+  },
+  {
+    id: "j13",
+    title: "Circular Economy Intern",
+    company: "Olam Food Ingredients",
+    companyShort: "ofi",
+    sector: "Environmental Sustainability",
+    subAreas: ["Circular Economy", "Agri"],
+    location: "Singapore",
+    workMode: "Hybrid",
+    companySize: "Large (1000+)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-07-08",
+    mentorship: true,
+    mentorTitle: "Global Head of Sustainability",
+    sources: ["LinkedIn", "MyCareersFuture"],
+    stipend: "S$1,350 / month",
+    posted: "1 week ago",
+    scope: "Support upstream programmes on regenerative agriculture and packaging circularity for cocoa & coffee supply chains.",
+    requirements: ["Supply chain interest", "Excel + research", "Reporting"],
+  },
+  {
+    id: "j14",
+    title: "EV Charging Strategy Intern",
+    company: "SP Group",
+    companyShort: "SP",
+    sector: "Environmental Sustainability",
+    subAreas: ["EV", "Grid"],
+    location: "Singapore",
+    workMode: "Hybrid",
+    companySize: "Large (1000+)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-07-15",
+    mentorship: true,
+    mentorTitle: "Managing Director, EV",
+    sources: ["LinkedIn", "MyCareersFuture", "Company Site"],
+    stipend: "S$1,250 / month",
+    posted: "4 days ago",
+    scope: "Support EV charging network planning, utilisation analytics, and partnerships with fleet operators.",
+    requirements: ["Analytical", "Excel + SQL", "Stakeholder comms"],
+  },
+  {
+    id: "j15",
+    title: "Sustainability Reporting Intern",
+    company: "Schneider Electric",
+    companyShort: "Schneider",
+    sector: "Environmental Sustainability",
+    subAreas: ["ESG", "Energy Management"],
+    location: "Singapore",
+    workMode: "Hybrid",
+    companySize: "Large (1000+)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-07-22",
+    mentorship: true,
+    mentorTitle: "VP, Sustainability APAC",
+    sources: ["LinkedIn"],
+    stipend: "S$1,400 / month",
+    posted: "2 days ago",
+    scope: "Support the APAC sustainability team with Scope 3 emissions data collection, supplier engagement, and CSRD readiness.",
+    requirements: ["Excel mastery", "Detail-oriented", "Sustainability interest"],
+  },
+  {
+    id: "j16",
+    title: "Logistics Operations Intern",
+    company: "Ninja Van",
+    companyShort: "Ninja Van",
+    sector: "Logistics",
+    subAreas: ["Operations"],
+    location: "Singapore",
+    workMode: "On-site",
+    companySize: "Mid (200-1000)",
+    durationMonths: 3,
+    startMonth: "Sep 2026",
+    deadline: "2026-06-30",
+    mentorship: false,
+    mentorTitle: null,
+    sources: ["JobStreet", "MyCareersFuture"],
+    stipend: "S$900 / month",
+    posted: "1 week ago",
+    scope: "Support last-mile ops with route analytics and driver performance reporting.",
+    requirements: ["Excel", "Process mindset"],
+  },
+  {
+    id: "j17",
+    title: "Nature-Based Solutions Intern",
+    company: "Conservation International",
+    companyShort: "CI",
+    sector: "Environmental Sustainability",
+    subAreas: ["Nature", "Carbon"],
+    location: "Singapore",
+    workMode: "Hybrid",
+    companySize: "Mid (200-1000)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-07-18",
+    mentorship: true,
+    mentorTitle: "Senior Director, Asia-Pacific",
+    sources: ["LinkedIn", "Company Site"],
+    stipend: "S$1,100 / month",
+    posted: "6 days ago",
+    scope: "Support project development for mangrove restoration and blue-carbon initiatives across SEA.",
+    requirements: ["GIS basics a plus", "Field-comfortable", "Research"],
+  },
+  {
+    id: "j18",
+    title: "Sustainable Aviation Fuel Intern",
+    company: "Neste",
+    companyShort: "Neste",
+    sector: "Environmental Sustainability",
+    subAreas: ["SAF", "Energy Transition"],
+    location: "Singapore",
+    workMode: "On-site",
+    companySize: "Large (1000+)",
+    durationMonths: 6,
+    startMonth: "Sep 2026",
+    deadline: "2026-07-25",
+    mentorship: true,
+    mentorTitle: "VP, Renewable Aviation APAC",
+    sources: ["LinkedIn"],
+    stipend: "S$1,500 / month",
+    posted: "3 days ago",
+    scope: "Support commercial strategy for SAF in the APAC region — market analysis, customer engagement, and partnerships.",
+    requirements: ["Business / Engineering", "Strong analytics", "Comms"],
+  },
+];
+  </script>
+
+  <!-- All components + app (JSX, transpiled by Babel in-browser) -->
+  <script type="text/babel">
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TWEAKS PANEL
+// ─────────────────────────────────────────────────────────────────────────────
+
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
+    color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+    background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+    background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+    background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;
+    border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2}
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+  .twk-chips{display:flex;gap:6px}
+  .twk-chip{position:relative;appearance:none;flex:1;min-width:0;height:46px;
+    padding:0;border:0;border-radius:6px;overflow:hidden;cursor:default;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06);
+    transition:transform .12s,box-shadow .12s}
+  .twk-chip:hover{transform:translateY(-1px);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.12)}
+  .twk-chip[data-on="1"]{box-shadow:0 0 0 1.5px rgba(0,0,0,.85),0 2px 6px rgba(0,0,0,.15)}
+  .twk-chip svg{position:absolute;top:6px;left:6px;width:13px;height:13px;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+`;
+
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div className="twk-panel">
+        <div className="twk-hd">
+          <b>{title}</b>
+          <button className="twk-x" onClick={() => setOpen(false)}>✕</button>
+        </div>
+        <div className="twk-body">{children}</div>
+      </div>
+    </>
+  );
+}
+
+function TweakSection({ label }) {
+  return <div className="twk-sect">{label}</div>;
+}
+
+function TweakRadio({ label, value, options, onChange }) {
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value));
+  const n = opts.length;
+  return (
+    <div className="twk-row">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <div className="twk-seg" role="radiogroup">
+        <div className="twk-seg-thumb"
+             style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`,
+                      width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map((o) => (
+          <button key={o.value} type="button" role="radio"
+                  aria-checked={o.value === value}
+                  onClick={() => onChange(o.value)}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TweakColor({ label, value, options, onChange }) {
+  const key = (o) => String(JSON.stringify(o)).toLowerCase();
+  const cur = key(value);
+  return (
+    <div className="twk-row">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <div className="twk-chips" role="radiogroup">
+        {options.map((o, i) => {
+          const on = key(o) === cur;
+          return (
+            <button key={i} type="button" className="twk-chip"
+                    data-on={on ? '1' : '0'}
+                    style={{ background: o }}
+                    title={o}
+                    onClick={() => onChange(o)}>
+              {on && (
+                <svg viewBox="0 0 14 14" aria-hidden="true">
+                  <path d="M3 7.2 5.8 10 11 4.2" fill="none" strokeWidth="2.2"
+                        strokeLinecap="round" strokeLinejoin="round" stroke="#fff" />
+                </svg>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ICONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const Icon = ({ name, size = 16 }) => {
+  const paths = {
+    search: <><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></>,
+    bookmark: <path d="M4 2h8v12l-4-2.5L4 14V2z"/>,
+    check: <path d="M3 8l3 3 7-7"/>,
+    "check-circle": <><circle cx="8" cy="8" r="6.5"/><path d="M5 8l2 2 4-4"/></>,
+    x: <path d="M3 3l10 10M13 3L3 13"/>,
+    sparkles: <><path d="M8 2v3M8 11v3M2 8h3M11 8h3M4 4l2 2M12 12l-2-2M4 12l2-2M12 4l-2 2"/></>,
+    chevronLeft: <path d="M10 3L5 8l5 5"/>,
+    chevronRight: <path d="M6 3l5 5-5 5"/>,
+    grid: <><rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/></>,
+    calendar: <><rect x="2.5" y="3.5" width="11" height="10"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></>,
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none"
+         stroke="currentColor" strokeWidth="1.5"
+         strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {paths[name]}
+    </svg>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MATCH SCORE
+// ─────────────────────────────────────────────────────────────────────────────
+
+function computeMatch(job) {
+  const breakdown = [
+    {
+      key: "sector",
+      label: "Environmental sustainability sector",
+      points: 35,
+      met: job.sector === "Environmental Sustainability",
+      detail: job.sector === "Environmental Sustainability"
+        ? `Listed under ${job.subAreas.join(", ")}`
+        : `Sector: ${job.sector}`,
+    },
+    {
+      key: "mentor",
+      label: "C-suite / senior mgmt mentorship",
+      points: 25,
+      met: !!job.mentorship,
+      detail: job.mentorship ? `Mentor: ${job.mentorTitle}` : "No mentorship offered",
+    },
+    {
+      key: "duration",
+      label: "6-month duration",
+      points: 20,
+      met: job.durationMonths >= 6,
+      detail: `${job.durationMonths} months`,
+    },
+    {
+      key: "start",
+      label: "September 2026 start",
+      points: 20,
+      met: job.startMonth === "Sep 2026",
+      detail: `Starts ${job.startMonth}`,
+    },
+  ];
+  const total = breakdown.reduce((s, b) => s + (b.met ? b.points : 0), 0);
+  return { total, breakdown };
+}
+
+const MatchScore = ({ score, variant = "ring" }) => {
+  const low = score < 60;
+  if (variant === "bar") {
+    return (
+      <div className={"match-bar" + (low ? " low" : "")}>
+        <div className="num">{score}<sub>/100</sub></div>
+        <div className="track"><div className="fill" style={{ width: score + "%" }}/></div>
+      </div>
+    );
+  }
+  if (variant === "number") {
+    return (
+      <div className={"match-num-only" + (low ? " low" : "")}>
+        {score}<sub>/100</sub>
+      </div>
+    );
+  }
+  const r = 18, c = 2 * Math.PI * r;
+  const off = c - (score / 100) * c;
+  return (
+    <div className={"match-ring" + (low ? " low" : "")}>
+      <svg viewBox="0 0 44 44">
+        <circle className="track" cx="22" cy="22" r={r}/>
+        <circle className="fill" cx="22" cy="22" r={r}
+          strokeDasharray={c} strokeDashoffset={off}/>
+      </svg>
+      <div className="num">{score}</div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// JOB CARD
+// ─────────────────────────────────────────────────────────────────────────────
+
+const JobCard = ({ job, saved, applied, onOpen, onToggleSave, onToggleApplied, density, matchVariant }) => {
+  const { total } = computeMatch(job);
+  return (
+    <div className={"card" + (density === "dense" ? " dense" : "") + (applied ? " applied" : "")}
+         onClick={onOpen}>
+      <div className="card-head">
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h3 className="card-title">{job.title}</h3>
+          <div className="card-company">{job.company} · {job.companySize.split(" ")[0]}</div>
+        </div>
+        <MatchScore score={total} variant={matchVariant}/>
+      </div>
+      <div className="card-meta">
+        {job.sector === "Environmental Sustainability" && (
+          <span className="tag sustain dot">Sustainability</span>
+        )}
+        {job.mentorship && (
+          <span className="tag mentor dot">C-suite mentor</span>
+        )}
+        <span className="tag">{job.workMode}</span>
+        <span className="tag">{job.durationMonths}mo</span>
+        <span className="tag">{job.stipend.replace(" / month", "/mo")}</span>
+      </div>
+      <div className="card-foot">
+        <div className="card-sources">via {job.sources.join(" · ")}</div>
+        <div className="card-actions" onClick={(e) => e.stopPropagation()}>
+          <button className={"icon-btn" + (applied ? " on" : "")}
+                  title={applied ? "Marked applied" : "Mark applied"}
+                  onClick={onToggleApplied}>
+            <Icon name="check-circle"/>
+          </button>
+          <button className={"icon-btn" + (saved ? " on" : "")}
+                  title={saved ? "Saved" : "Save"}
+                  onClick={onToggleSave}>
+            <Icon name="bookmark"/>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCORE BREAKDOWN
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ScoreBreakdown = ({ job }) => {
+  const { total, breakdown } = computeMatch(job);
+  return (
+    <div className="score-breakdown">
+      <div className="total">
+        <span className="label">Scholarship Fit</span>
+        <span className="val">{total}<sub>/100</sub></span>
+      </div>
+      {breakdown.map(b => (
+        <div key={b.key} className={"score-row" + (b.met ? " met" : "")}>
+          <div className="label">
+            <span className={"dot " + (b.met ? "met" : "miss")}/>
+            <span>
+              {b.label}
+              <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 2 }}>{b.detail}</div>
+            </span>
+          </div>
+          <span className="points">{b.met ? "+" : ""}{b.met ? b.points : 0}/{b.points}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHECKLIST
+// ─────────────────────────────────────────────────────────────────────────────
+
+const DEFAULT_CHECKLIST = [
+  { id: "cv", label: "Tailor CV to highlight sustainability projects" },
+  { id: "cover", label: "Draft cover letter mentioning scholarship + mentorship" },
+  { id: "transcript", label: "Attach latest poly transcript" },
+  { id: "portfolio", label: "Include portfolio / project links (if relevant)" },
+  { id: "referee", label: "Confirm 1-2 referees" },
+  { id: "submit", label: "Submit application via source site" },
+];
+
+const Checklist = ({ jobId }) => {
+  const storageKey = `if.checklist.${jobId}`;
+  const [done, setDone] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch { return {}; }
+  });
+  React.useEffect(() => {
+    try { localStorage.setItem(storageKey, JSON.stringify(done)); } catch {}
+  }, [done, storageKey]);
+  const toggle = (id) => setDone(d => ({ ...d, [id]: !d[id] }));
+  const completed = DEFAULT_CHECKLIST.filter(i => done[i.id]).length;
+  return (
+    <div>
+      <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 8 }}>
+        {completed} of {DEFAULT_CHECKLIST.length} complete
+      </div>
+      <div className="checklist">
+        {DEFAULT_CHECKLIST.map(item => (
+          <label key={item.id} className={"check" + (done[item.id] ? " done" : "")}>
+            <input type="checkbox" checked={!!done[item.id]} onChange={() => toggle(item.id)}/>
+            <span className="label">{item.label}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COVER LETTER HELPER
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CoverLetter = ({ job }) => {
+  const storageKey = `if.cover.${job.id}`;
+  const [text, setText] = React.useState(() => localStorage.getItem(storageKey) || "");
+  const [loading, setLoading] = React.useState(false);
+  const [err, setErr] = React.useState("");
+  React.useEffect(() => {
+    try { localStorage.setItem(storageKey, text); } catch {}
+  }, [text, storageKey]);
+
+  const generate = async () => {
+    setLoading(true); setErr("");
+    try {
+      if (window.claude && window.claude.complete) {
+        const prompt = `Draft a concise, sincere cover letter (about 220 words, 3 short paragraphs, no buzzwords) for a Singapore polytechnic student applying for this internship:\n\nRole: ${job.title}\nCompany: ${job.company}\nSector: ${job.sector} (${job.subAreas.join(", ")})\nDuration: ${job.durationMonths} months starting ${job.startMonth}\nScope: ${job.scope}\n${job.mentorship ? `Mentorship offered with: ${job.mentorTitle}` : ""}\n\nThe student is on a sustainability-linked scholarship that requires (a) a graded internship with environmental sustainability scope and (b) a job-shadow or mentorship session with a C-suite or senior management representative. Mention this naturally — don't recite it verbatim. Keep tone warm, specific, and grounded. Do not use the word "passion" or "leverage". Start with "Dear Hiring Team," and end with "Sincerely,\\n[Your name]".`;
+        const result = await window.claude.complete(prompt);
+        setText(result);
+      } else {
+        setErr("AI drafting requires the Claude design tool. Write your own cover letter here.");
+      }
+    } catch (e) {
+      setErr("Couldn't generate right now. Try again in a moment.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="cover-letter">
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        placeholder="Write your cover letter here. Edits are saved automatically."
+      />
+      <div className="row">
+        <div style={{ fontSize: 11.5, color: "var(--muted)" }}>
+          {err || (text ? `${text.split(/\s+/).filter(Boolean).length} words · saved locally` : "Nothing drafted yet")}
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {text && (
+            <button className="btn ghost sm"
+                    onClick={() => navigator.clipboard?.writeText(text)}>
+              Copy
+            </button>
+          )}
+          <button className="btn accent sm" onClick={generate} disabled={loading}>
+            <Icon name="sparkles" size={13}/>
+            {loading ? "Drafting…" : text ? "Re-draft" : "Draft with AI"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DRAWER
+// ─────────────────────────────────────────────────────────────────────────────
+
+function formatDate(iso) {
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" });
+}
+
+const Drawer = ({ job, saved, applied, onClose, onToggleSave, onToggleApplied }) => {
+  React.useEffect(() => {
+    const onKey = e => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <>
+      <div className="drawer-backdrop" onClick={onClose}/>
+      <aside className="drawer" role="dialog" aria-modal="true">
+        <div className="drawer-head">
+          <div style={{ minWidth: 0 }}>
+            <h2>{job.title}</h2>
+            <div className="company">{job.company} · {job.location} · {job.workMode}</div>
+            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+              {job.sector === "Environmental Sustainability" && (
+                <span className="tag sustain dot">Sustainability</span>
+              )}
+              {job.mentorship && (
+                <span className="tag mentor dot">{job.mentorTitle}</span>
+              )}
+              {job.subAreas.slice(0,3).map(s => (
+                <span key={s} className="tag">{s}</span>
+              ))}
+            </div>
+          </div>
+          <button className="drawer-close" onClick={onClose} aria-label="Close">
+            <Icon name="x"/>
+          </button>
+        </div>
+
+        <div className="drawer-body">
+          <section>
+            <ScoreBreakdown job={job}/>
+          </section>
+
+          <section>
+            <h4>Role scope</h4>
+            <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-2)" }}>
+              {job.scope}
+            </p>
+            <ul style={{ margin: "10px 0 0 0", paddingLeft: 18, color: "var(--ink-2)", fontSize: 13 }}>
+              {job.requirements.map(r => <li key={r} style={{ marginBottom: 3 }}>{r}</li>)}
+            </ul>
+          </section>
+
+          <section>
+            <h4>Details</h4>
+            <div className="meta-grid">
+              <div><div className="k">Duration</div><div className="v">{job.durationMonths} months</div></div>
+              <div><div className="k">Starts</div><div className="v">{job.startMonth}</div></div>
+              <div><div className="k">Apply by</div><div className="v">{formatDate(job.deadline)}</div></div>
+              <div><div className="k">Stipend</div><div className="v">{job.stipend}</div></div>
+              <div><div className="k">Company size</div><div className="v">{job.companySize}</div></div>
+              <div><div className="k">Listed on</div><div className="v">{job.sources.join(", ")}</div></div>
+            </div>
+          </section>
+
+          <section>
+            <h4>Application checklist</h4>
+            <Checklist jobId={job.id}/>
+          </section>
+
+          <section>
+            <h4>Cover letter</h4>
+            <CoverLetter job={job}/>
+          </section>
+        </div>
+
+        <div className="drawer-foot">
+          <button className={"btn ghost" + (saved ? " on" : "")} onClick={onToggleSave}>
+            <Icon name="bookmark"/>{saved ? "Saved" : "Save listing"}
+          </button>
+          <button className={"btn" + (applied ? " accent" : "")} onClick={onToggleApplied}>
+            <Icon name="check-circle"/>{applied ? "Marked applied" : "Mark as applied"}
+          </button>
+        </div>
+      </aside>
+    </>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CALENDAR
+// ─────────────────────────────────────────────────────────────────────────────
+
+const Calendar = ({ jobs, applied, onPick }) => {
+  const earliest = jobs.reduce((min, j) => {
+    const d = new Date(j.deadline);
+    return !min || d < min ? d : min;
+  }, null) || new Date();
+  const [view, setView] = React.useState(() => ({
+    y: earliest.getFullYear(), m: earliest.getMonth()
+  }));
+
+  const first = new Date(view.y, view.m, 1);
+  const start = new Date(first);
+  start.setDate(1 - first.getDay());
+  const days = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    days.push(d);
+  }
+  const today = new Date();
+  const monthLabel = first.toLocaleDateString("en-SG", { month: "long", year: "numeric" });
+  const eventsBy = {};
+  jobs.forEach(j => { (eventsBy[j.deadline] = eventsBy[j.deadline] || []).push(j); });
+  const iso = (d) => d.toISOString().slice(0,10);
+
+  return (
+    <div className="cal">
+      <div className="cal-head">
+        <div className="month">{monthLabel}</div>
+        <div className="cal-nav">
+          <button className="icon-btn"
+                  onClick={() => setView(v => ({ y: v.m === 0 ? v.y-1 : v.y, m: v.m === 0 ? 11 : v.m-1 }))}>
+            <Icon name="chevronLeft"/>
+          </button>
+          <button className="icon-btn"
+                  onClick={() => setView({ y: today.getFullYear(), m: today.getMonth() })}>
+            <span style={{ fontSize: 11.5, padding: "0 4px" }}>Today</span>
+          </button>
+          <button className="icon-btn"
+                  onClick={() => setView(v => ({ y: v.m === 11 ? v.y+1 : v.y, m: v.m === 11 ? 0 : v.m+1 }))}>
+            <Icon name="chevronRight"/>
+          </button>
+        </div>
+      </div>
+      <div className="cal-grid">
+        {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => (
+          <div key={d} className="cal-dow">{d}</div>
+        ))}
+        {days.map((d, i) => {
+          const dim = d.getMonth() !== view.m;
+          const isToday = iso(d) === iso(today);
+          const evts = eventsBy[iso(d)] || [];
+          const shown = evts.slice(0, 2);
+          const extra = evts.length - shown.length;
+          return (
+            <div key={i} className={"cal-cell" + (dim ? " dim" : "") + (isToday ? " today" : "")}>
+              <div className="d">{d.getDate()}</div>
+              {shown.map(j => (
+                <div key={j.id}
+                     className={"cal-event" + (applied[j.id] ? " applied" : "")}
+                     title={`${j.title} — ${j.company}`}
+                     onClick={() => onPick(j)}>
+                  {j.companyShort} · {j.title.split(" ").slice(0,3).join(" ")}
+                </div>
+              ))}
+              {extra > 0 && (
+                <div className="cal-event-more" onClick={() => onPick(evts[shown.length])}>
+                  +{extra} more
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN APP
+// ─────────────────────────────────────────────────────────────────────────────
+
+const TWEAK_DEFAULTS = { accent: "#2E9461", density: "comfy", matchVariant: "ring" };
+const ACCENT_NAME = { "#2E9461": "green", "#5A6B82": "slate", "#18181B": "ink", "#C97A3F": "terra" };
+const SECTORS = ["Environmental Sustainability","Finance","Tech","E-commerce","Logistics","Media"];
+const COMPANY_SIZES = ["Startup (50-200)","Small (<50)","Mid (200-1000)","Large (1000+)"];
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  React.useEffect(() => {
+    document.body.setAttribute("data-accent", ACCENT_NAME[t.accent] || "green");
+  }, [t.accent]);
+
+  const [q, setQ] = React.useState("");
+  const [sectors, setSectors] = React.useState(["Environmental Sustainability"]);
+  const [locations, setLocations] = React.useState([]);
+  const [workModes, setWorkModes] = React.useState([]);
+  const [sizes, setSizes] = React.useState([]);
+  const [mentorshipOnly, setMentorshipOnly] = React.useState(true);
+  const [sixMonthOnly, setSixMonthOnly] = React.useState(true);
+  const [septStartOnly, setSeptStartOnly] = React.useState(false);
+  const [minMatch, setMinMatch] = React.useState(0);
+  const [sort, setSort] = React.useState("match");
+
+  const [saved, setSavedState] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem("if.saved") || "{}"); } catch { return {}; }
+  });
+  const [applied, setAppliedState] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem("if.applied") || "{}"); } catch { return {}; }
+  });
+  const setSaved = (next) => { setSavedState(next); try { localStorage.setItem("if.saved", JSON.stringify(next)); } catch {} };
+  const setApplied = (next) => { setAppliedState(next); try { localStorage.setItem("if.applied", JSON.stringify(next)); } catch {} };
+  const toggleSave = (id) => setSaved({ ...saved, [id]: !saved[id] });
+  const toggleApplied = (id) => setApplied({ ...applied, [id]: !applied[id] });
+
+  const [view, setView] = React.useState("grid");
+  const [openJob, setOpenJob] = React.useState(null);
+  const [showSavedOnly, setShowSavedOnly] = React.useState(false);
+
+  const toggleArr = (arr, val) => arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
+
+  const filtered = React.useMemo(() => {
+    const ql = q.trim().toLowerCase();
+    return window.JOBS.filter(j => {
+      if (ql) {
+        const hay = (j.title + " " + j.company + " " + j.sector + " " + j.subAreas.join(" ") + " " + j.scope).toLowerCase();
+        if (!hay.includes(ql)) return false;
+      }
+      if (sectors.length && !sectors.includes(j.sector)) return false;
+      if (locations.length && !locations.includes(j.location)) return false;
+      if (workModes.length && !workModes.includes(j.workMode)) return false;
+      if (sizes.length && !sizes.includes(j.companySize)) return false;
+      if (mentorshipOnly && !j.mentorship) return false;
+      if (sixMonthOnly && j.durationMonths < 6) return false;
+      if (septStartOnly && j.startMonth !== "Sep 2026") return false;
+      if (showSavedOnly && !saved[j.id]) return false;
+      if (computeMatch(j).total < minMatch) return false;
+      return true;
+    }).sort((a, b) => {
+      if (sort === "match") return computeMatch(b).total - computeMatch(a).total;
+      if (sort === "deadline") return a.deadline.localeCompare(b.deadline);
+      if (sort === "company") return a.company.localeCompare(b.company);
+      return 0;
+    });
+  }, [q, sectors, locations, workModes, sizes, mentorshipOnly, sixMonthOnly, septStartOnly, minMatch, sort, showSavedOnly, saved]);
+
+  const clearAll = () => {
+    setQ(""); setSectors([]); setLocations([]); setWorkModes([]); setSizes([]);
+    setMentorshipOnly(false); setSixMonthOnly(false); setSeptStartOnly(false); setMinMatch(0);
+    setShowSavedOnly(false);
+  };
+
+  const savedCount = Object.values(saved).filter(Boolean).length;
+
+  return (
+    <div className="app">
+      {/* Topbar */}
+      <div className="topbar">
+        <div className="brand">
+          <div className="brand-mark"/>
+          Internship Finder
+          <small>Sustainability scholarship · AY2026</small>
+        </div>
+        <div className="search">
+          <span className="search-icon"><Icon name="search"/></span>
+          <input
+            type="text"
+            placeholder="Search role, company, sector…"
+            value={q}
+            onChange={e => setQ(e.target.value)}
+          />
+        </div>
+        <div className="view-toggle">
+          <button className={view === "grid" ? "on" : ""} onClick={() => setView("grid")}>
+            <Icon name="grid" size={12}/> Grid
+          </button>
+          <button className={view === "calendar" ? "on" : ""} onClick={() => setView("calendar")}>
+            <Icon name="calendar" size={12}/> Deadlines
+          </button>
+        </div>
+        <button
+          className="saved-pill"
+          onClick={() => setShowSavedOnly(v => !v)}
+          style={showSavedOnly ? { borderColor: "var(--ink)", color: "var(--ink)" } : {}}
+        >
+          <Icon name="bookmark" size={13}/>
+          Saved <span className="num">{savedCount}</span>
+        </button>
+      </div>
+
+      {/* Main */}
+      <div className="main">
+        {/* Sidebar */}
+        <aside className="sidebar">
+          <div className="filter-group">
+            <h3>Sector</h3>
+            <div className="chip-row">
+              {SECTORS.map(s => (
+                <button key={s}
+                        className={"chip" + (sectors.includes(s) ? " on accent" : "")}
+                        onClick={() => setSectors(toggleArr(sectors, s))}>
+                  {s === "Environmental Sustainability" ? "Sustainability" : s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-group">
+            <h3>Work mode & location</h3>
+            <div className="chip-row">
+              {["Singapore","Remote"].map(l => (
+                <button key={l}
+                        className={"chip" + (locations.includes(l) ? " on" : "")}
+                        onClick={() => setLocations(toggleArr(locations, l))}>
+                  {l}
+                </button>
+              ))}
+              {["On-site","Hybrid","Remote"].map(m => (
+                <button key={"wm-"+m}
+                        className={"chip" + (workModes.includes(m) ? " on" : "")}
+                        onClick={() => setWorkModes(toggleArr(workModes, m))}>
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-group">
+            <h3>Company size</h3>
+            <div className="chip-row">
+              {COMPANY_SIZES.map(s => (
+                <button key={s}
+                        className={"chip" + (sizes.includes(s) ? " on" : "")}
+                        onClick={() => setSizes(toggleArr(sizes, s))}>
+                  {s.split(" ")[0]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-group">
+            <h3>Scholarship requirements</h3>
+            <label className="check">
+              <input type="checkbox" checked={mentorshipOnly}
+                     onChange={e => setMentorshipOnly(e.target.checked)}/>
+              <span>C-suite / senior mentorship</span>
+            </label>
+            <label className="check">
+              <input type="checkbox" checked={sixMonthOnly}
+                     onChange={e => setSixMonthOnly(e.target.checked)}/>
+              <span>6-month duration</span>
+            </label>
+            <label className="check">
+              <input type="checkbox" checked={septStartOnly}
+                     onChange={e => setSeptStartOnly(e.target.checked)}/>
+              <span>September 2026 start</span>
+            </label>
+          </div>
+
+          <div className="filter-group">
+            <h3>Minimum match</h3>
+            <div className="slider-row">
+              <input type="range" min="0" max="100" step="5"
+                     value={minMatch}
+                     onChange={e => setMinMatch(parseInt(e.target.value))}/>
+              <span className="val">{minMatch}</span>
+            </div>
+          </div>
+
+          <button className="clear-btn" onClick={clearAll}>Clear all filters</button>
+        </aside>
+
+        {/* Results */}
+        <div className="results">
+          {view === "grid" ? (
+            <>
+              <div className="results-header">
+                <div className="results-count">
+                  <strong>{filtered.length}</strong>{" "}
+                  {filtered.length === 1 ? "listing" : "listings"}
+                  {showSavedOnly && " saved"}
+                  {sectors.includes("Environmental Sustainability") && " · sustainability"}
+                </div>
+                <div className="sort">
+                  Sort by
+                  <select value={sort} onChange={e => setSort(e.target.value)}>
+                    <option value="match">Match score</option>
+                    <option value="deadline">Deadline</option>
+                    <option value="company">Company</option>
+                  </select>
+                </div>
+              </div>
+              {filtered.length === 0 ? (
+                <div className="empty">
+                  <h3>No listings match your filters</h3>
+                  <p>Try clearing a filter or lowering the minimum match score.</p>
+                </div>
+              ) : (
+                <div className={"grid" + (t.density === "dense" ? " dense" : "")}>
+                  {filtered.map(j => (
+                    <JobCard
+                      key={j.id}
+                      job={j}
+                      saved={!!saved[j.id]}
+                      applied={!!applied[j.id]}
+                      density={t.density}
+                      matchVariant={t.matchVariant}
+                      onOpen={() => setOpenJob(j)}
+                      onToggleSave={() => toggleSave(j.id)}
+                      onToggleApplied={() => toggleApplied(j.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="results-header">
+                <div className="results-count">
+                  <strong>{filtered.length}</strong> upcoming deadlines
+                </div>
+                <div className="sort">
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, marginRight: 8 }}>
+                    <span style={{ width: 10, height: 10, background: "var(--accent-soft)", borderLeft: "2px solid var(--accent)" }}/>
+                    Open
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ width: 10, height: 10, background: "oklch(95% 0.02 250)", borderLeft: "2px solid var(--muted-2)" }}/>
+                    Applied
+                  </span>
+                </div>
+              </div>
+              <Calendar jobs={filtered} applied={applied} onPick={(j) => setOpenJob(j)}/>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Detail drawer */}
+      {openJob && (
+        <Drawer
+          job={openJob}
+          saved={!!saved[openJob.id]}
+          applied={!!applied[openJob.id]}
+          onClose={() => setOpenJob(null)}
+          onToggleSave={() => toggleSave(openJob.id)}
+          onToggleApplied={() => toggleApplied(openJob.id)}
+        />
+      )}
+
+      {/* Tweaks panel */}
+      <TweaksPanel>
+        <TweakSection label="Theme"/>
+        <TweakColor
+          label="Accent"
+          value={t.accent}
+          options={["#2E9461", "#5A6B82", "#18181B", "#C97A3F"]}
+          onChange={(v) => setTweak("accent", v)}
+        />
+        <TweakSection label="Layout"/>
+        <TweakRadio
+          label="Card density"
+          value={t.density}
+          options={["comfy", "dense"]}
+          onChange={(v) => setTweak("density", v)}
+        />
+        <TweakRadio
+          label="Match score"
+          value={t.matchVariant}
+          options={["ring", "bar", "number"]}
+          onChange={(v) => setTweak("matchVariant", v)}
+        />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
